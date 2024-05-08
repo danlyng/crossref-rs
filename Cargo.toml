@@ -20,7 +20,7 @@ path = "src/crossref.rs"
 required-features =["cli"]
 
 [dependencies]
-reqwest = "0.9"
+reqwest = {version = "0.12.4", features = ["blocking"]}
 serde = { version = "1.0", features = ["derive"] }
 failure = "0.1"
 serde_json = "1.0"

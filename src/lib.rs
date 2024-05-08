@@ -253,8 +253,6 @@ pub mod response;
 // TODO extract to optional feature?
 /// content negotiation
 pub mod cn;
-/// textual data mining
-pub mod tdm;
 
 #[doc(inline)]
 pub use self::error::{Error, Result};
@@ -277,7 +275,7 @@ pub(crate) use self::response::{Message, Response};
 use crate::error::ErrorKind;
 use crate::query::{FundersQuery, MembersQuery, ResourceComponent};
 use crate::response::{MessageType, Prefix};
-use reqwest::{self, Client};
+use reqwest::blocking::{self, Client};
 use std::iter::FlatMap;
 use std::rc::Rc;
 
@@ -319,7 +317,7 @@ pub struct Crossref {
     /// use another base url than `api.crossref.org`
     pub base_url: String,
     /// the reqwest client that handles the requests
-    pub client: Rc<Client>,
+    pub client: Client,
 }
 
 impl Crossref {
@@ -644,7 +642,7 @@ impl CrossrefBuilder {
                 })?,
             );
         }
-        let client = reqwest::Client::builder()
+        let client = reqwest::blocking::Client::builder()
             .default_headers(headers)
             .build()
             .map_err(|_| ErrorKind::Config {
@@ -655,7 +653,7 @@ impl CrossrefBuilder {
             base_url: self
                 .base_url
                 .unwrap_or_else(|| Crossref::BASE_URL.to_string()),
-            client: Rc::new(client),
+            client,
         })
     }
 }
