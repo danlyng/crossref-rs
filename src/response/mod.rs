@@ -252,9 +252,9 @@ impl Into<CrossrefType> for crate::query::types::Type {
 pub struct WorkAgency {
     /// the DOI fo the work that belongs to the `agency`
     #[serde(rename = "DOI")]
-    doi: String,
+    pub doi: String,
     /// the agency that owns the work with `doi`
-    agency: Agency,
+    pub agency: Agency,
 }
 
 /// response item for the `/prefix/{id}/` route
@@ -346,11 +346,11 @@ pub struct FacetItem {
 pub struct Failure {
     /// identifier for a failue like `parameter-not-found`
     #[serde(rename = "type")]
-    type_: String,
+    pub type_: String,
     /// value that caused the failure
-    value: String,
+    pub value: String,
     /// the message from the server
-    message: String,
+    pub message: String,
 }
 
 /// response item for the `/funder/{id}` route
@@ -499,8 +499,7 @@ mod tests {
 
     #[test]
     fn agency_msg_deserialize() {
-        let agency_str =
-            r#"{"status":"ok","message-type":"work-agency","message-version":"1.0.0","message":{"DOI":"10.1037\/0003-066x.59.1.29","agency":{"id":"crossref","label":"Crossref"}}}"#;
+        let agency_str = r#"{"status":"ok","message-type":"work-agency","message-version":"1.0.0","message":{"DOI":"10.1037\/0003-066x.59.1.29","agency":{"id":"crossref","label":"Crossref"}}}"#;
 
         let agency: Response = from_str(agency_str).unwrap();
 

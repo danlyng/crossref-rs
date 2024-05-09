@@ -346,15 +346,10 @@ impl Crossref {
             .client
             .get(&query.to_url(&self.base_url)?)
             .send()?
+            .error_for_status()?
             .text()?;
-        if resp.starts_with("Resource not found") {
-            Err(ErrorKind::ResourceNotFound {
-                resource: Box::new(query.clone().resource_component()),
-            }
-            .into())
-        } else {
-            Ok(serde_json::from_str(&resp)?)
-        }
+
+        Ok(serde_json::from_str(&resp)?)
     }
 
     /// Return the `Work` items that match a certain query.
@@ -727,5 +722,73 @@ impl<'a> Iterator for WorkListIterator<'a> {
             // no response received
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::query::works::FieldQuery;
+    use crate::response::Work;
+    use std::collections::HashSet;
+
+    #[test]
+    fn test_works() {
+        let client = Crossref::builder().build().unwrap();
+        let works = client
+            .works(WorksQuery::new("academic publishing"))
+            .unwrap();
+        assert!(!works.items.is_empty());
+    }
+
+    #[test]
+    fn test_work() {
+        let client = Crossref::builder().build().unwrap();
+        let work = client.work("10.1037/0003-066X.59.1.29").unwrap();
+        assert_eq!(work.doi.to_ascii_uppercase(), "10.1037/0003-066X.59.1.29");
+    }
+
+    #[test]
+    fn test_work_agency() {
+        let client = Crossref::builder().build().unwrap();
+        let agency = client.work_agency("10.1037/0003-066X.59.1.29").unwrap();
+        assert_eq!(agency.agency.id, "crossref");
+    }
+
+    #[test]
+    fn test_funders() {
+        let client = Crossref::builder().build().unwrap();
+        let funders = client
+            .funders(FundersQuery::new("national science foundation"))
+            .unwrap();
+        assert!(!funders.items.is_empty());
+    }
+
+    #[test]
+    fn test_funder() {
+        let client = Crossref::builder().build().unwrap();
+        let funder = client.funder("100000001").unwrap();
+        assert_eq!(funder.id, "100000001");
+    }
+
+    #[test]
+    fn test_members() {
+        let client = Crossref::builder().build().unwrap();
+        let members = client.members(MembersQuery::new("elsevier")).unwrap();
+        assert!(!members.items.is_empty());
+    }
+
+    #[test]
+    fn test_member() {
+        let client = Crossref::builder().build().unwrap();
+        let member = client.member("78").unwrap();
+        assert_eq!(member.id, 78);
+    }
+
+    #[test]
+    fn test_not_found() {
+        let client = Crossref::builder().build().unwrap();
+        let work = client.work("not_a_doi");
+        assert!(work.is_err());
     }
 }
